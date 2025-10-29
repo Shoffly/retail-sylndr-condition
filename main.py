@@ -14,9 +14,16 @@ st.set_page_config(
 # Set up BigQuery credentials
 @st.cache_resource
 def get_bigquery_client():
-    credentials = service_account.Credentials.from_service_account_file(
-        'service_account.json'
-    )
+    try:
+        # Try to use Streamlit secrets (for deployed apps)
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["service_account"]
+        )
+    except (FileNotFoundError, KeyError):
+        # Fall back to local service account file (for local development)
+        credentials = service_account.Credentials.from_service_account_file(
+            'service_account.json'
+        )
     return bigquery.Client(credentials=credentials, project='pricing-338819')
 
 client = get_bigquery_client()
